@@ -5,6 +5,7 @@ import sys
 import json
 import threading
 import uuid
+import urllib.request
 
 def ensure_js_package():
     cache_dir = os.path.expanduser("~/.webernetes_python")
@@ -57,9 +58,10 @@ class Bridge:
         env = os.environ.copy()
         
         webernetes_src = os.path.join(cache_dir, "node_modules", "@ngrok", "webernetes", "src", "index.ts")
-        env["WEBERNETES_PATH"] = "file://" + webernetes_src
+        env["WEBERNETES_PATH"] = "file://" + urllib.request.pathname2url(webernetes_src)
         
-        tsx_path = os.path.join(cache_dir, "node_modules", ".bin", "tsx")
+        tsx_cmd = "tsx.cmd" if sys.platform == "win32" else "tsx"
+        tsx_path = os.path.join(cache_dir, "node_modules", ".bin", tsx_cmd)
         
         self.process = subprocess.Popen(
             [tsx_path, bridge_script],
@@ -100,9 +102,10 @@ class Bridge:
         self.process.stdin.flush()
         
         with self.cond:
-            # Wait for response
+            # Wait for response with timeout
             while msg_id not in self.responses:
-                self.cond.wait()
+                if not self.cond.wait(timeout=30.0):
+                    raise TimeoutError("Timeout waiting for response from JS bridge")
             resp = self.responses.pop(msg_id)
             if "error" in resp:
                 raise Exception(resp["error"])

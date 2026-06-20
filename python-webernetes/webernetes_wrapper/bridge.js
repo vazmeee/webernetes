@@ -19,6 +19,7 @@ async function main() {
         try {
             msg = JSON.parse(line);
         } catch (e) {
+            console.error("Failed to parse JSON:", e.message);
             return;
         }
         
