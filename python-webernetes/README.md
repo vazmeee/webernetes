@@ -68,7 +68,7 @@ finally:
 ## How It Works
 
 1. **Automatic JS Backend Installation**: Upon initialization, the Python module checks if `@ngrok/webernetes` is installed in `~/.webernetes_python`. If not, it uses `npm install` to pull it from the npm registry.
-2. **Node.js Bridge**: The python `Cluster` object spans a lightweight Node.js child process (`bridge.js`).
+2. **Node.js Bridge**: The python `Cluster` object spawns a lightweight Node.js child process (`bridge.js`).
 3. **JSON RPC**: Commands (like `init()`, `apply()`, `fetch()`, `close()`) are sent as JSON-RPC messages via stdin/stdout to the node process, invoking the real JS API.
 
 This design gives you the simplest way to script `webernetes` without having to know or write JavaScript!

@@ -19,8 +19,17 @@ def ensure_js_package():
     node_modules = os.path.join(cache_dir, "node_modules", "@ngrok", "webernetes")
     if not os.path.exists(node_modules):
         print("Installing @ngrok/webernetes from npm...")
-        # Ignore output to keep it clean
-        subprocess.run(["npm", "install", "@ngrok/webernetes", "tsx"], cwd=cache_dir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # Capture stderr to handle potential installation failures
+        result = subprocess.run(
+            ["npm", "install", "@ngrok/webernetes", "tsx"], 
+            cwd=cache_dir, 
+            stdout=subprocess.DEVNULL, 
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        if result.returncode != 0:
+            print(f"Failed to install @ngrok/webernetes: {result.stderr}", file=sys.stderr)
+            raise RuntimeError("Failed to install JS dependencies")
         
     bridge_dest = os.path.join(cache_dir, "bridge.js")
     if not os.path.exists(bridge_dest):
@@ -32,11 +41,14 @@ def ensure_js_package():
 
 class Bridge:
     _instance = None
+    _lock = threading.Lock()
     
     @classmethod
     def get_instance(cls):
         if cls._instance is None:
-            cls._instance = cls()
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = cls()
         return cls._instance
 
     def __init__(self):
@@ -67,7 +79,9 @@ class Bridge:
 
     def _read_stderr(self):
         for line in self.process.stderr:
-            pass # ignore stderr to avoid clutter, or log to a file if needed
+            # Check for DEBUG environment variable to show stderr
+            if os.environ.get("WEBERNETES_DEBUG"):
+                print("Node stderr:", line.strip(), file=sys.stderr)
 
     def _read_stdout(self):
         for line in self.process.stdout:
