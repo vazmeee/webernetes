@@ -1,0 +1,10 @@
+README.md
+setup.py
+webernetes_wrapper/__init__.py
+webernetes_wrapper/__main__.py
+webernetes_wrapper/bridge.js
+webernetes_wrapper.egg-info/PKG-INFO
+webernetes_wrapper.egg-info/SOURCES.txt
+webernetes_wrapper.egg-info/dependency_links.txt
+webernetes_wrapper.egg-info/entry_points.txt
+webernetes_wrapper.egg-info/top_level.txt
